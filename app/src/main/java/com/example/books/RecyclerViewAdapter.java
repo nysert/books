@@ -1,9 +1,11 @@
 package com.example.books;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -38,6 +40,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         recyclerViewHolder.textViewAuthor.setText(authorFullName);
         recyclerViewHolder.textViewCategory.setText(book.getCategory());
         Picasso.get().load(book.getImage_url()).into(recyclerViewHolder.bookImage);
+        recyclerViewHolder.cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(v.getContext(), BookDetailsActivity.class);
+                intent.putExtra("book", book);
+                v.getContext().startActivity(intent);
+            }
+        });
     }
 
     @Override
