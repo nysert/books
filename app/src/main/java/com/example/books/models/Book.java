@@ -39,6 +39,8 @@ public class Book implements Serializable {
     @SerializedName("_createdOn")
     private String createdOn;
 
+    public Book() {
+    }
 
     public Book(String id, String pages, String image_url, Author autor, String isbn, String description, String publisher, String published, String title, String category, String createdOn) {
         this.id = id;

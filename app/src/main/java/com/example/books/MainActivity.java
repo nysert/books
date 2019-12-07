@@ -114,6 +114,10 @@ public class MainActivity extends AppCompatActivity {
                 });
                 builder.show();
                 return true;
+            case R.id.menu_create_book:
+                Intent intent = new Intent(this, CreateBookActivity.class);
+                this.startActivity(intent);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
