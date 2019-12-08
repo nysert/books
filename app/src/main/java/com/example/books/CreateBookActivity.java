@@ -133,7 +133,38 @@ public class CreateBookActivity extends AppCompatActivity implements View.OnClic
             textInputLayoutIsbn.setError("Solo puede contener numeros");
             isValid = false;
         }
-        // do other validations
+        if (editTextTitle.getText().toString().length() == 0) {
+            textInputLayoutTitle.setError("No puede estar vacio");
+            isValid = false;
+        }
+        if (editTextAuthorFirstName.getText().toString().length() == 0) {
+            textInputLayoutAuthorFirstName.setError("No puede estar vacio");
+            isValid = false;
+        }
+        if (editTextAuthorLastName.getText().toString().length() == 0) {
+            textInputLayoutAuthorLastName.setError("No puede estar vacio");
+            isValid = false;
+        }
+        if (editTextCategory.getText().toString().length() == 0) {
+            textInputLayoutCategory.setError("No puede estar vacio");
+            isValid = false;
+        }
+        if (editTextPublisher.getText().toString().length() == 0) {
+            textInputLayoutPublisher.setError("No puede estar vacio");
+            isValid = false;
+        }
+        if (editTextPages.getText().toString().length() == 0) {
+            textInputLayoutPages.setError("No puede estar vacio");
+            isValid = false;
+        }
+        if (editTextDescription.getText().toString().length() == 0) {
+            textInputLayoutDescription.setError("No puede estar vacio");
+            isValid = false;
+        }
+        if (editTextImageUrl.getText().toString().length() == 0) {
+            textInputLayoutImageUrl.setError("No puede estar vacio");
+            isValid = false;
+        }
         return isValid;
     }
 

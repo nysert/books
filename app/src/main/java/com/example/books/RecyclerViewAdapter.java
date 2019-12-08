@@ -1,84 +1,68 @@
 package com.example.books;
 
-import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.CardView;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.books.models.Book;
-import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.RecyclerViewHolder> {
 
-    private List<Book> books;
+    private Map<String, List<Book>> categoryBooks;
 
-    RecyclerViewAdapter(List<Book> books) {
-        this.books = books;
+    RecyclerViewAdapter(Map<String, List<Book>> categoryBooks) {
+        this.categoryBooks = categoryBooks;
     }
 
     @NonNull
     @Override
     public RecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        CardView cardView = (CardView) LayoutInflater.from(viewGroup.getContext())
-                .inflate(R.layout.book_card, viewGroup, false);
-        RecyclerViewHolder viewHolder = new RecyclerViewHolder(cardView);
-        return viewHolder;
+        LinearLayout linearLayout = (LinearLayout) LayoutInflater.from(viewGroup.getContext())
+                .inflate(R.layout.book_list_item, viewGroup, false);
+        return new RecyclerViewHolder(linearLayout);
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerViewHolder recyclerViewHolder, int i) {
-        final Book book = this.books.get(i);
-        String authorFullName = book.getAutor().getFirst_name() + " " + book.getAutor().getLast_name();
-        recyclerViewHolder.textViewTitle.setText(book.getTitle());
-        recyclerViewHolder.textViewAuthor.setText(authorFullName);
-        recyclerViewHolder.textViewCategory.setText(book.getCategory());
-        Picasso.get().load(book.getImage_url()).into(recyclerViewHolder.bookImage);
-        recyclerViewHolder.cardView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), BookDetailsActivity.class);
-                intent.putExtra("book", book);
-                v.getContext().startActivity(intent);
-            }
-        });
+        List<String> categories = new ArrayList<>(categoryBooks.keySet());
+        String category = categories.get(i);
+        recyclerViewHolder.textViewCategoryTitle.setText(category);
+
+        RecyclerView recyclerViewBooks = recyclerViewHolder.recyclerViewBooks;
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(recyclerViewBooks.getContext(), LinearLayoutManager.VERTICAL, false);
+        recyclerViewBooks.setLayoutManager(layoutManager);
+        BooksRecyclerViewAdapter booksRecyclerViewAdapter = new BooksRecyclerViewAdapter(categoryBooks.get(category));
+        recyclerViewBooks.setAdapter(booksRecyclerViewAdapter);
     }
 
     @Override
     public int getItemCount() {
-        return this.books.size();
+        return new ArrayList<>(categoryBooks.keySet()).size();
     }
 
-    void setBooks(List<Book> books) {
-        this.books = books;
+    void setCategoryBooks(Map<String, List<Book>> categoryBooks) {
+        this.categoryBooks = categoryBooks;
     }
 
     public static class RecyclerViewHolder extends RecyclerView.ViewHolder {
+        LinearLayout linearLayout;
+        TextView textViewCategoryTitle;
+        RecyclerView recyclerViewBooks;
 
-        CardView cardView;
-        TextView textViewTitle;
-        TextView textViewAuthor;
-        TextView textViewCategory;
-        ImageView bookImage;
-
-        public RecyclerViewHolder(CardView cardView) {
-            super(cardView);
-            this.cardView = cardView;
-            textViewTitle = cardView.findViewById(R.id.list_item_title);
-            textViewAuthor = cardView.findViewById(R.id.list_item_author);
-            textViewCategory = cardView.findViewById(R.id.list_item_category);
-            bookImage = cardView.findViewById(R.id.list_item_image);
-        }
-
-        @Override
-        public String toString() {
-            return super.toString();
+        RecyclerViewHolder(View view) {
+            super(view);
+            linearLayout = (LinearLayout) view;
+            textViewCategoryTitle = view.findViewById(R.id.list_item_category_title);
+            recyclerViewBooks = view.findViewById(R.id.list_item_recycler_books);
         }
     }
 }

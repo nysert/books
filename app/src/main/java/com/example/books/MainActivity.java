@@ -2,6 +2,7 @@ package com.example.books;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,7 +18,9 @@ import android.widget.EditText;
 import com.example.books.models.Book;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -30,36 +33,19 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private RecyclerViewAdapter recyclerViewAdapter;
     private List<Book> books = new ArrayList<>();
+    private Map<String, List<Book>> categoryBooks = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        recyclerViewAdapter = new RecyclerViewAdapter(books);
+        recyclerViewAdapter = new RecyclerViewAdapter(categoryBooks);
         recyclerView = findViewById(R.id.recyclerView);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getBaseContext(), LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(recyclerViewAdapter);
-
-        String API_URL = BuildConfig.API_URL;
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(API_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        retrofit.create(BooksService.class).listBooks().enqueue(new Callback<List<Book>>() {
-            @Override
-            public void onResponse(Call<List<Book>> call, Response<List<Book>> response) {
-                books = response.body();
-                recyclerViewAdapter.setBooks(books);
-                recyclerViewAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onFailure(Call<List<Book>> call, Throwable t) {
-
-            }
-        });
+        getBooks();
     }
 
     @Override
@@ -84,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                         final String search = input.getText().toString().toLowerCase();
-                        List<Book> filteredBooks = new ArrayList<>();
+                        Map<String, List<Book>> filteredBooks = new HashMap<>();
                         for(Book book : books) {
                             if (book.getTitle().contains(search) ||
                                     book.getAutor().getFirst_name().toLowerCase().contains(search) ||
@@ -99,14 +85,19 @@ public class MainActivity extends AppCompatActivity {
                                     book.getPages().toLowerCase().contains(search) ||
                                     book.getCreatedOn().toLowerCase().contains(search)
                             ) {
-                                filteredBooks.add(book);
+                                List<Book> newBooks = new ArrayList<>();
+                                if (filteredBooks.containsKey(book.getCategory())) {
+                                    newBooks = filteredBooks.get(book.getCategory());
+                                }
+                                newBooks.add(book);
+                                filteredBooks.put(book.getCategory(), newBooks);
                             }
                         }
-                        recyclerViewAdapter.setBooks(filteredBooks);
+                        recyclerViewAdapter.setCategoryBooks(filteredBooks);
                         recyclerViewAdapter.notifyDataSetChanged();
                     }
                 });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
@@ -116,10 +107,52 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.menu_create_book:
                 Intent intent = new Intent(this, CreateBookActivity.class);
-                this.startActivity(intent);
+                this.startActivityForResult(intent, 1);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            getBooks();
+        }
+    }
+
+    public void getBooks() {
+        String API_URL = BuildConfig.API_URL;
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(API_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        retrofit.create(BooksService.class).listBooks().enqueue(new Callback<List<Book>>() {
+            @Override
+            public void onResponse(Call<List<Book>> call, Response<List<Book>> response) {
+                books.clear();
+                categoryBooks.clear();
+                books = response.body();
+                for (Book book : books) {
+                    List<Book> cBooks = categoryBooks.get(book.getCategory());
+                    if (cBooks == null) {
+                        List<Book> newBooks =  new ArrayList<>();
+                        newBooks.add(book);
+                        categoryBooks.put(book.getCategory(), newBooks);
+                    } else {
+                        cBooks.add(book);
+                    }
+                }
+
+                recyclerViewAdapter.setCategoryBooks(categoryBooks);
+                recyclerViewAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onFailure(Call<List<Book>> call, Throwable t) {
+
+            }
+        });
     }
 }
